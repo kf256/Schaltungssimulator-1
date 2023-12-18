@@ -436,7 +436,7 @@
                     punkte[i].position.y /= kästchengröße;
                 }
                 //console.log(JSON.parse(JSON.stringify(punkte)));
-                let entfernteElemente = [];
+                /*let entfernteElemente = [];
                 let entfernt = true;
                 while (entfernt) {
                     entfernt = false;
@@ -463,7 +463,7 @@
                         punkte = punkte.slice(0, i).concat(punkte.slice(i+1, punkte.length));
                         i--;
                     }
-                }
+                }*/
                 //console.log(punkte);
                 if (punkte.length == 0) return;
                 let gleichungen = [];
@@ -488,7 +488,8 @@
                 function zufaelligweiter(position, überspringen = null) {
                     let elm = punkte[position].elemente;
                     let ergebnis = [überspringen];
-                    while (ergebnis[0] == überspringen) {
+                    let anzahl = 0;
+                    while (ergebnis[0] == überspringen && anzahl < 10) {
                         let elementNr = elm[Math.floor(Math.random()*elm.length)];
                         for (let i = 0; i < punkte.length; i++) {
                             if (i == position) continue;
@@ -500,6 +501,7 @@
                                 break;
                             }
                         }
+                        anzahl++;
                     }
                     return ergebnis;
                 };
@@ -557,9 +559,9 @@
                 };
                 gleichungensortieren();
                 function lösen1(fortschritt) {
-                    if (entfernteElemente.indexOf(fortschritt) != -1) return;
+                    //if (entfernteElemente.indexOf(fortschritt) != -1) return;
                     for (let i = fortschritt+1; i < gleichungen.length; i++) {
-                        if (entfernteElemente.indexOf(i) != -1) continue;
+                        //if (entfernteElemente.indexOf(i) != -1) continue;
                         let faktor = gleichungen[i][fortschritt]/gleichungen[fortschritt][fortschritt];
                         for (let j = 0; j < gleichungen[i].length; j++) {
                             gleichungen[i][j] -= gleichungen[fortschritt][j]*faktor;
@@ -568,9 +570,9 @@
                     gleichungensortieren();
                 };
                 function lösen2(fortschritt) {
-                    if (entfernteElemente.indexOf(elemente.length-fortschritt-1) != -1) return;
+                    //if (entfernteElemente.indexOf(elemente.length-fortschritt-1) != -1) return;
                     for (let i = elemente.length-fortschritt-2; i >= 0; i--) {
-                        if (entfernteElemente.indexOf(i) != -1) continue;
+                        //if (entfernteElemente.indexOf(i) != -1) continue;
                         let faktor = gleichungen[i][elemente.length-fortschritt-1]/gleichungen[elemente.length-fortschritt-1][elemente.length-fortschritt-1];
                         for (let j = 0; j < gleichungen[i].length; j++) {
                             gleichungen[i][j] -= gleichungen[elemente.length-fortschritt-1][j]*faktor;
@@ -583,7 +585,7 @@
                 for (let i = 0; i < elemente.length; i++) lösen2(i);
                 //console.log(JSON.parse(JSON.stringify(gleichungen)));
                 for (let i = 0; i < elemente.length; i++) {
-                    if (entfernteElemente.indexOf(i) != -1) continue;
+                    //if (entfernteElemente.indexOf(i) != -1) continue;
                     let stromstärke = gleichungen[i][elemente.length]/gleichungen[i][i];
                     stromstärke = Math.abs(stromstärke);
                     stromstärke = (Math.round(stromstärke*1000)/1000).toString().replace(".", ",");
@@ -598,12 +600,12 @@
                     let f = function(x, y) {
                         return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
                     };
-                    ctx.font = "bold "+l/5+"px arial";
+                    ctx.font = "bold "+50+"px arial";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.strokeStyle = "green";
-                    ctx.lineWidth = kästchengröße/7;
-                    ctx.strokeText(stromstärke, ...f(0.5, 0.3));
+                    ctx.fillStyle = "green";
+                    if (elemente[i].name == "Verbindung") ctx.fillText(stromstärke, ...f(0.5, 0));
+                    else ctx.fillText(stromstärke, ...f(0.5, 0.3));
                 }
             };/*
             elemente[0] = new bauteile[0]();
