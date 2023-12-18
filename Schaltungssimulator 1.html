@@ -18,8 +18,8 @@
         <script>
             let canvas = document.getElementById("canvas");
             let ctx = canvas.getContext("2d");
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+            canvas.height = (window.innerHeight > 0) ? window.innerHeight : screen.height;
             let kästchengröße = 50;
             let mausposition = null;
             let elemente = [];
