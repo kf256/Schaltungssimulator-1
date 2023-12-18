@@ -23,7 +23,7 @@
             canvas.width = (window.innerWidth > 0) ? window.innerWidth : screen.width*window.devicePixelRatio;
             canvas.height = (window.innerHeight > 0) ? window.innerHeight : screen.height*window.devicePixelRatio;
             document.addEventListener("touchmove", function(event) {
-                if (event.zoom != 1) event.preventDefault();
+                event.preventDefault();
             });
             let werkzeuge_hoehe
             let kästchengröße = 50;
