@@ -18,8 +18,9 @@
         <script>
             let canvas = document.getElementById("canvas");
             let ctx = canvas.getContext("2d");
-            canvas.width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
-            canvas.height = (window.innerHeight > 0) ? window.innerHeight : screen.height;
+            canvas.width = (window.innerWidth > 0) ? window.innerWidth : screen.width*window.devicePixelRatio;
+            canvas.height = (window.innerHeight > 0) ? window.innerHeight : screen.height*window.devicePixelRatio;
+            let werkzeuge_hoehe
             let kästchengröße = 50;
             let mausposition = null;
             let elemente = [];
