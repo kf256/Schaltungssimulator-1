@@ -340,6 +340,7 @@
                             if (ergebnis[0] > 1) continue;
                             if (Math.abs(ergebnis[1]) > 0.1) continue;
                             elemente = elemente.slice(0, i).concat(elemente.slice(i+1, elemente.length));
+                            malen();
                             break;
                         }
                     } else if (bauteil_ausgewählt == bauteile.length+1) {
