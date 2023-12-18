@@ -239,7 +239,7 @@
                 }
                 berechnen();
             };
-            canvas.addEventListener("mousemove", function(event) {
+            canvas.addEventListener("pointermove", function(event) {
                 mausposition = {x: event.offsetX, y: event.offsetY};
                 if (event.offsetY < canvas.height*0.6) malen();
                 if (bauteil_ausgewählt == bauteile.length) {
