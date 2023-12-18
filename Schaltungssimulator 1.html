@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {
+                border: 0px;
+            }
+            canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas" width="800" height="600"/>
+        <script>
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let kästchengröße = 50;
+            let mausposition = null;
+            let elemente = [];
+            let bauteile = [
+                class {
+                    constructor() {
+                        this.start = {x: 0, y: 0};
+                        this.ende = {x: 0, y: 0};
+                        this.fertig = false;
+                        this.name = "Verbindung";
+                    }
+                    static name = "Verbindung";
+                    malen() {
+                        let x1 = this.start.x;
+                        let y1 = this.start.y;
+                        let x2 = this.fertig ? this.ende.x : mausposition.x;
+                        let y2 = this.fertig ? this.ende.y : mausposition.y;
+                        let a = Math.atan2(y2-y1, x2-x1);
+                        let l = Math.hypot(y2-y1, x2-x1);
+                        let f = function(x, y) {
+                            return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                        };
+                        ctx.beginPath();
+                        ctx.moveTo(...f(0.0, 0));
+                        ctx.lineTo(...f(1.0, 0));
+                        ctx.moveTo(...f(0.4,-0.1));
+                        ctx.lineTo(...f(0.5, 0));
+                        ctx.lineTo(...f(0.4, 0.1));
+                        ctx.lineWidth = kästchengröße/15;
+                        ctx.strokeStyle = "black";
+                        ctx.stroke();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.arc(x1, y1, kästchengröße/7, 0, Math.PI*2);
+                        ctx.arc(x2, y2, kästchengröße/7, 0, Math.PI*2);
+                        ctx.fillStyle = "black";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                },
+                class {
+                    constructor() {
+                        this.start = {x: 0, y: 0};
+                        this.ende = {x: 0, y: 0};
+                        this.fertig = false;
+                        this.größe = 100;
+                        this.name = "Widerstand";
+                    }
+                    get text() {
+                        if (this.größe < 10**3)      return this.größe+" Ω";
+                        else if (this.größe < 10**6) return this.größe/10**3+" kΩ";
+                        else                         return this.größe/10**6+" MΩ";
+                    }
+                    static name = "Widerstand";
+                    malen() {
+                        let x1 = this.start.x;
+                        let y1 = this.start.y;
+                        let x2 = this.fertig ? this.ende.x : mausposition.x;
+                        let y2 = this.fertig ? this.ende.y : mausposition.y;
+                        let a = Math.atan2(y2-y1, x2-x1);
+                        let l = Math.hypot(y2-y1, x2-x1);
+                        let f = function(x, y) {
+                            return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                        };
+                        ctx.beginPath();
+                        ctx.moveTo(...f(0.4,-0.3));
+                        ctx.lineTo(...f(0.7, 0));
+                        ctx.lineTo(...f(0.4, 0.3));
+                        ctx.lineWidth = kästchengröße/15;
+                        ctx.strokeStyle = "black";
+                        ctx.stroke();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.moveTo(...f(0.1, 0.2));
+                        ctx.lineTo(...f(0.9, 0.2));
+                        ctx.lineTo(...f(0.9,-0.2));
+                        ctx.lineTo(...f(0.1,-0.2));
+                        ctx.lineTo(...f(0.1, 0.2));
+                        ctx.fillStyle = "white";
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.moveTo(...f(0.0, 0.0));
+                        ctx.lineTo(...f(0.1, 0.0));
+                        ctx.moveTo(...f(0.9, 0.0));
+                        ctx.lineTo(...f(1.0, 0.0));
+                        ctx.moveTo(...f(0.1, 0.2));
+                        ctx.lineTo(...f(0.9, 0.2));
+                        ctx.lineTo(...f(0.9,-0.2));
+                        ctx.lineTo(...f(0.1,-0.2));
+                        ctx.lineTo(...f(0.1, 0.2));
+                        ctx.stroke();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.arc(x1, y1, kästchengröße/7, 0, Math.PI*2);
+                        ctx.arc(x2, y2, kästchengröße/7, 0, Math.PI*2);
+                        ctx.fillStyle = "black";
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.font = l/7+"px arial";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(this.text, ...f(0.5, 0));
+                    }
+                },
+                class {
+                    constructor() {
+                        this.start = {x: 0, y: 0};
+                        this.ende = {x: 0, y: 0};
+                        this.fertig = false;
+                        this.spannung = 5;
+                        this.name = "Batterie";
+                    }
+                    get text() {
+                        return this.spannung+"V";
+                    }
+                    static name = "Batterie";
+                    malen() {
+                        let x1 = this.start.x;
+                        let y1 = this.start.y;
+                        let x2 = this.fertig ? this.ende.x : mausposition.x;
+                        let y2 = this.fertig ? this.ende.y : mausposition.y;
+                        let a = Math.atan2(y2-y1, x2-x1);
+                        let l = Math.hypot(y2-y1, x2-x1);
+                        let f = function(x, y) {
+                            return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                        };
+                        ctx.beginPath();
+                        ctx.moveTo(...f(0.0, 0.0));
+                        ctx.lineTo(...f(0.3, 0.0));
+                        ctx.moveTo(...f(0.7, 0.0));
+                        ctx.lineTo(...f(1.0, 0.0));
+                        ctx.moveTo(...f(0.3, 0.4));
+                        ctx.lineTo(...f(0.3,-0.4));
+                        ctx.moveTo(...f(0.7, 0.2));
+                        ctx.lineTo(...f(0.7,-0.2));
+                        ctx.lineWidth = kästchengröße/15;
+                        ctx.strokeStyle = "black";
+                        ctx.stroke();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.arc(x1, y1, kästchengröße/7, 0, Math.PI*2);
+                        ctx.arc(x2, y2, kästchengröße/7, 0, Math.PI*2);
+                        ctx.fillStyle = "black";
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.font = l/5+"px arial";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(this.text, ...f(0.5, 0));
+                        ctx.fillText("+", ...f(0.1, 0.2));
+                        ctx.fillText("-", ...f(0.9, 0.2));
+                    }
+                }
+            ];
+            let bauteil_ausgewählt = 0;
+            function malen() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let x = 0; x <= canvas.width; x += kästchengröße) {
+                    for (let y = 0; y <= canvas.height*0.6; y += kästchengröße) {
+                        ctx.beginPath();
+                        ctx.rect(x, y, kästchengröße, kästchengröße);
+                        ctx.lineWidth = kästchengröße/20;
+                        ctx.strokeStyle = "#ccc";
+                        ctx.stroke();
+                        ctx.closePath();
+                        ctx.beginPath();
+                        ctx.arc(x, y, kästchengröße/20, 0, Math.PI*2);
+                        ctx.fillStyle = "grey";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+                for (let i = 0; i < elemente.length; i++) {
+                    elemente[i].malen();
+                }
+                if (mausposition != null) {
+                    if (mausposition.y < canvas.height*0.6) {
+                        let x = Math.round(mausposition.x/kästchengröße)*kästchengröße;
+                        let y = Math.round(mausposition.y/kästchengröße)*kästchengröße;
+                        ctx.beginPath();
+                        ctx.arc(x, y, kästchengröße/3, 0, Math.PI*2);
+                        ctx.lineWidth = kästchengröße/20;
+                        ctx.strokeStyle = "black";
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+                }
+                ctx.clearRect(0, canvas.height*0.6, canvas.width, canvas.height*0.4);
+                ctx.beginPath();
+                ctx.rect(0, canvas.height*0.6-10, canvas.width, 10);
+                const shadow = ctx.createLinearGradient(0, canvas.height*0.6-10, 0, canvas.height*0.6);
+                shadow.addColorStop(0, "#0000");
+                shadow.addColorStop(1, "#000f");
+                ctx.fillStyle = shadow;
+                ctx.fill();
+                ctx.closePath();
+                for (let i = 0; i < bauteile.length+1; i++) {
+                    let x = canvas.height*0.05*(1+i*7);
+                    let y = canvas.height*0.65;
+                    let w = canvas.height*0.3;
+                    let h = canvas.height*0.3;
+                    ctx.beginPath();
+                    ctx.rect(x, y, w, h);
+                    ctx.lineWidth = kästchengröße/20;
+                    if (bauteil_ausgewählt == i) ctx.lineWidth = kästchengröße/10;
+                    ctx.strokeStyle = "black";
+                    ctx.stroke();
+                    ctx.closePath();
+                    ctx.font = w/7+"px arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    if (i < bauteile.length) ctx.fillText(bauteile[i].name, x+w/2, y+h/2);
+                    else {
+                        if (i == bauteile.length) ctx.fillText("Löschen", x+w/2, y+h/2);
+                    }
+                }
+                berechnen();
+            };
+            canvas.addEventListener("mousemove", function(event) {
+                mausposition = {x: event.offsetX, y: event.offsetY};
+                if (event.offsetY < canvas.height*0.6) malen();
+                if (bauteil_ausgewählt == bauteile.length) {
+                    for (let i = 0; i < elemente.length; i++) {
+                        let x1 = elemente[i].start.x;
+                        let y1 = elemente[i].start.y;
+                        let x2 = elemente[i].fertig ? elemente[i].ende.x : mausposition.x;
+                        let y2 = elemente[i].fertig ? elemente[i].ende.y : mausposition.y;
+                        let a = Math.atan2(y2-y1, x2-x1);
+                        let l = Math.hypot(y2-y1, x2-x1);
+                        let f = function(x, y) {
+                            return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                        };
+                        let f_ = function(x, y) {
+                            x = (x-x1)/l;
+                            y = (y-y1)/l;
+                            return [x*Math.cos(-a)-y*Math.sin(-a), x*Math.sin(-a)+y*Math.cos(-a)];
+                        };
+                        let ergebnis = f_(event.offsetX, event.offsetY);
+                        if (ergebnis[0] < 0) continue;
+                        if (ergebnis[0] > 1) continue;
+                        if (Math.abs(ergebnis[1]) > 0.1) continue;
+                        ctx.beginPath();
+                        ctx.rect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = "#f404";
+                        ctx.fill();
+                        ctx.closePath();
+                        elemente[i].malen();
+                        break;
+                    }
+                }
+            });
+            canvas.addEventListener("pointerdown", function(event) {
+                if (event.offsetY < canvas.height*0.6) {
+                    if (bauteil_ausgewählt < bauteile.length) {
+                        let bauteil = new bauteile[bauteil_ausgewählt]();
+                        let x = Math.round(event.offsetX/kästchengröße)*kästchengröße;
+                        let y = Math.round(event.offsetY/kästchengröße)*kästchengröße;
+                        bauteil.start = {x: x, y: y};
+                        elemente.push(bauteil);
+                        malen();
+                    } else if (bauteil_ausgewählt == bauteile.length) {
+                        for (let i = 0; i < elemente.length; i++) {
+                            let x1 = elemente[i].start.x;
+                            let y1 = elemente[i].start.y;
+                            let x2 = elemente[i].fertig ? elemente[i].ende.x : mausposition.x;
+                            let y2 = elemente[i].fertig ? elemente[i].ende.y : mausposition.y;
+                            let a = Math.atan2(y2-y1, x2-x1);
+                            let l = Math.hypot(y2-y1, x2-x1);
+                            let f = function(x, y) {
+                                return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                            };
+                            let f_ = function(x, y) {
+                                x = (x-x1)/l;
+                                y = (y-y1)/l;
+                                return [x*Math.cos(-a)-y*Math.sin(-a), x*Math.sin(-a)+y*Math.cos(-a)];
+                            };
+                            let ergebnis = f_(event.offsetX, event.offsetY);
+                            if (ergebnis[0] < 0) continue;
+                            if (ergebnis[0] > 1) continue;
+                            if (Math.abs(ergebnis[1]) > 0.1) continue;
+                            elemente = elemente.slice(0, i).concat(elemente.slice(i+1, elemente.length));
+                            break;
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < bauteile.length+1; i++) {
+                        let x = canvas.height*0.05*(1+i*7);
+                        let y = canvas.height*0.65;
+                        let w = canvas.height*0.3;
+                        let h = canvas.height*0.3;
+                        if (mausposition.x < x) continue;
+                        if (mausposition.x > x+w) continue;
+                        if (mausposition.y < y) continue;
+                        if (mausposition.y > y+h) continue;
+                        bauteil_ausgewählt = i;
+                    }
+                    malen();
+                }
+            });
+            canvas.addEventListener("pointerup", function(event) {
+                if (elemente.length != 0 && !elemente[elemente.length-1].fertig) {
+                    let bauteil = elemente[elemente.length-1];
+                    let x = Math.round(event.offsetX/kästchengröße)*kästchengröße;
+                    let y = Math.round(event.offsetY/kästchengröße)*kästchengröße;
+                    bauteil.ende = {x: x, y: y};
+                    bauteil.fertig = true;
+                    if (bauteil.start.x == bauteil.ende.x && bauteil.start.y == bauteil.ende.y) elemente.pop();
+                    malen();
+                }
+            });
+            function berechnen() {
+                let punkte = [];
+                for (let i = 0; i < elemente.length; i++) {
+                    if (elemente[i].start.x == elemente[i].ende.x && elemente[i].start.y == elemente[i].ende.y) continue;
+                    let position = elemente[i].start;
+                    let hinzugefügt = false;
+                    for (let j = 0; j < punkte.length; j++) {
+                        if (punkte[j].position.x == position.x && punkte[j].position.y == position.y) {
+                            punkte[j].elemente.push(i);
+                            hinzugefügt = true;
+                            break;
+                        }
+                    }
+                    if (!hinzugefügt) punkte.push({position: {x: position.x, y: position.y}, elemente: [i]});
+                    position = elemente[i].ende;
+                    hinzugefügt = false;
+                    for (let j = 0; j < punkte.length; j++) {
+                        if (punkte[j].position.x == position.x && punkte[j].position.y == position.y) {
+                            punkte[j].elemente.push(i);
+                            hinzugefügt = true;
+                            break;
+                        }
+                    }
+                    if (!hinzugefügt) punkte.push({position: {x: position.x, y: position.y}, elemente: [i]});
+                }
+                for (let i = 0; i < punkte.length; i++) {
+                    punkte[i].position.x /= kästchengröße;
+                    punkte[i].position.y /= kästchengröße;
+                }
+                //console.log(JSON.parse(JSON.stringify(punkte)));
+                let entfernteElemente = [];
+                let entfernt = true;
+                while (entfernt) {
+                    entfernt = false;
+                    for (let i = 0; i < punkte.length; i++) {
+                        if (punkte[i].elemente.length == 1) {
+                            entfernt = true;
+                            for (let j = 0; j < punkte.length; j++) {
+                                if (i == j) continue;
+                                let elm = punkte[j].elemente;
+                                let index = elm.indexOf(punkte[i].elemente[0]);
+                                if (index != -1) {
+                                    punkte[j].elemente = elm.slice(0, index).concat(elm.slice(index+1, elm.length));
+                                    break;
+                                }
+                            }
+                            entfernteElemente.push(punkte[i].elemente[0]);
+                            punkte[i].elemente = [];
+                            break;
+                        }
+                    }
+                }
+                for (let i = 0; i < punkte.length; i++) {
+                    if (punkte[i].elemente.length == 0) {
+                        punkte = punkte.slice(0, i).concat(punkte.slice(i+1, punkte.length));
+                        i--;
+                    }
+                }
+                //console.log(punkte);
+                if (punkte.length == 0) return;
+                let gleichungen = [];
+                for (let i = 0; i < punkte.length; i++) {
+                    let gleichung = [];
+                    for (let j = 0; j < elemente.length; j++) {
+                        if (punkte[i].elemente.indexOf(j) == -1) {
+                            gleichung.push(0);
+                        } else {
+                            let x = elemente[j].start.x/kästchengröße;
+                            let y = elemente[j].start.y/kästchengröße;
+                            if (x == punkte[i].position.x && y == punkte[i].position.y) {
+                                gleichung.push(-1);
+                            } else {
+                                gleichung.push(1);
+                            }
+                        }
+                    }
+                    gleichung.push(0);
+                    gleichungen.push(gleichung);
+                }
+                function zufaelligweiter(position, überspringen = null) {
+                    let elm = punkte[position].elemente;
+                    let ergebnis = [überspringen];
+                    while (ergebnis[0] == überspringen) {
+                        let elementNr = elm[Math.floor(Math.random()*elm.length)];
+                        for (let i = 0; i < punkte.length; i++) {
+                            if (i == position) continue;
+                            if (punkte[i].elemente.indexOf(elementNr) != -1) {
+                                let x = elemente[elementNr].start.x/kästchengröße;
+                                let y = elemente[elementNr].start.y/kästchengröße;
+                                let richtung = !(x == punkte[i].position.x && y == punkte[i].position.y);
+                                ergebnis = [i, elementNr, richtung];
+                                break;
+                            }
+                        }
+                    }
+                    return ergebnis;
+                };
+                while (gleichungen.length <= elemente.length*2) {
+                    let elm = [];
+                    let startposition = 0;
+                    let positionvorher = startposition;
+                    let ergebnis = zufaelligweiter(startposition);
+                    let position = ergebnis[0];
+                    elm.push([ergebnis[1], ergebnis[2]]);
+                    while (position != startposition) {
+                        let ergebnis = zufaelligweiter(position, positionvorher);
+                        positionvorher = position;
+                        position = ergebnis[0];
+                        elm.push([ergebnis[1], ergebnis[2]]);
+                    }
+                    let gleichung = new Array(elemente.length+1).fill(0);
+                    for (let i = 0; i < elm.length; i++) {
+                        let richtung = elm[i][1] ? 1 : -1;
+                        let name = elemente[elm[i][0]].name;
+                        if (name == "Verbindung") {
+                            gleichung[elm[i][0]] += 0;
+                        } else if (name == "Widerstand") {
+                            gleichung[elm[i][0]] += elemente[elm[i][0]].größe*richtung;
+                        } else if (name == "Batterie") {
+                            gleichung[elemente.length] += elemente[elm[i][0]].spannung*richtung;
+                        } else throw name;
+                    }
+                    gleichungen.push(gleichung);
+                }
+                function gleichungensortieren() {
+                    gleichungen.sort(function(a, b) {
+                        let nullena = 0;
+                        for (let i = 0; i < a.length; i++) {
+                            if (a[i] == 0) nullena++;
+                            else break;
+                        }
+                        let nullenb = 0;
+                        for (let i = 0; i < b.length; i++) {
+                            if (b[i] == 0) nullenb++;
+                            else break;
+                        }
+                        return nullena-nullenb;
+                    });
+                    for (let i = 0; i < gleichungen.length; i++) {
+                        let nurNull = true;
+                        for (let j = 0; j < gleichungen[i].length-1; j++) {
+                            if (Math.abs(gleichungen[i][j]) > 0.000001) nurNull = false;
+                        }
+                        if (nurNull) {
+                            gleichungen = gleichungen.slice(0, i).concat(gleichungen.slice(i+1, gleichungen.length));
+                            i--;
+                        }
+                    }
+                };
+                gleichungensortieren();
+                function lösen1(fortschritt) {
+                    if (entfernteElemente.indexOf(fortschritt) != -1) return;
+                    for (let i = fortschritt+1; i < gleichungen.length; i++) {
+                        if (entfernteElemente.indexOf(i) != -1) continue;
+                        let faktor = gleichungen[i][fortschritt]/gleichungen[fortschritt][fortschritt];
+                        for (let j = 0; j < gleichungen[i].length; j++) {
+                            gleichungen[i][j] -= gleichungen[fortschritt][j]*faktor;
+                        }
+                    }
+                    gleichungensortieren();
+                };
+                function lösen2(fortschritt) {
+                    if (entfernteElemente.indexOf(elemente.length-fortschritt-1) != -1) return;
+                    for (let i = elemente.length-fortschritt-2; i >= 0; i--) {
+                        if (entfernteElemente.indexOf(i) != -1) continue;
+                        let faktor = gleichungen[i][elemente.length-fortschritt-1]/gleichungen[elemente.length-fortschritt-1][elemente.length-fortschritt-1];
+                        for (let j = 0; j < gleichungen[i].length; j++) {
+                            gleichungen[i][j] -= gleichungen[elemente.length-fortschritt-1][j]*faktor;
+                        }
+                    }
+                };
+                //console.log(JSON.parse(JSON.stringify(gleichungen)));
+                for (let i = 0; i < elemente.length; i++) lösen1(i);
+                //console.log(JSON.parse(JSON.stringify(gleichungen)));
+                for (let i = 0; i < elemente.length; i++) lösen2(i);
+                //console.log(JSON.parse(JSON.stringify(gleichungen)));
+                for (let i = 0; i < elemente.length; i++) {
+                    if (entfernteElemente.indexOf(i) != -1) continue;
+                    let stromstärke = gleichungen[i][elemente.length]/gleichungen[i][i];
+                    stromstärke = (Math.round(stromstärke*1000)/1000).toString().replace(".", ",");
+                    if (stromstärke == "NaN") stromstärke = "?";
+                    let x1 = elemente[i].start.x;
+                    let y1 = elemente[i].start.y;
+                    let x2 = elemente[i].fertig ? elemente[i].ende.x : mausposition.x;
+                    let y2 = elemente[i].fertig ? elemente[i].ende.y : mausposition.y;
+                    let a = Math.atan2(y2-y1, x2-x1);
+                    let l = Math.hypot(y2-y1, x2-x1);
+                    let f = function(x, y) {
+                        return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
+                    };
+                    ctx.font = "bold "+l/3+"px arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.strokeStyle = "green";
+                    ctx.lineWidth = kästchengröße/10;
+                    ctx.strokeText(stromstärke, ...f(0.5, 0));
+                }
+            };/*
+            elemente[0] = new bauteile[0]();
+            elemente[0].start = {x: 5*kästchengröße, y: 5*kästchengröße};
+            elemente[0].ende =  {x: 8*kästchengröße, y: 5*kästchengröße};
+            elemente[0].fertig = true;
+            elemente[1] = new bauteile[0]();
+            elemente[1].start = {x: 8*kästchengröße, y: 5*kästchengröße};
+            elemente[1].ende =  {x: 8*kästchengröße, y: 8*kästchengröße};
+            elemente[1].fertig = true;
+            elemente[2] = new bauteile[1]();
+            elemente[2].start = {x: 8*kästchengröße, y: 8*kästchengröße};
+            elemente[2].ende =  {x: 5*kästchengröße, y: 8*kästchengröße};
+            elemente[2].fertig = true;
+            elemente[3] = new bauteile[2]();
+            elemente[3].start = {x: 5*kästchengröße, y: 8*kästchengröße};
+            elemente[3].ende =  {x: 5*kästchengröße, y: 5*kästchengröße};
+            elemente[3].fertig = true;*/
+            malen();
+        </script>
+    </body>
+</html>
