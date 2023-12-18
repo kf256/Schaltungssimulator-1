@@ -249,7 +249,7 @@
             };
             canvas.addEventListener("pointermove", function(event) {
                 mausposition = {x: event.offsetX, y: event.offsetY};
-                if (event.offsetY < canvas.height*0.6) malen();
+                malen();
                 if (bauteil_ausgewählt == bauteile.length) {
                     for (let i = 0; i < elemente.length; i++) {
                         let x1 = elemente[i].start.x;
@@ -310,7 +310,7 @@
             });
             canvas.addEventListener("pointerdown", function(event) {
                 mausposition = {x: event.offsetX, y: event.offsetY};
-                if (event.offsetY < canvas.height*0.6) {
+                if (event.offsetY < schaltung_hoehe) {
                     if (bauteil_ausgewählt < bauteile.length) {
                         if (elemente.length != 0 && !elemente[elemente.length-1].fertig) return;
                         let bauteil = new bauteile[bauteil_ausgewählt]();
@@ -505,13 +505,28 @@
                     }
                     return ergebnis;
                 };
-                while (gleichungen.length <= elemente.length*2) {
+                for (let e = 0; e < elemente.length; e++) {
                     let elm = [];
                     let startposition = 0;
+                    for (let i = 0; i < punkte.length; i++) {
+                        let xgleich = Math.abs(punkte[i].position.x-elemente[e].start.x/kästchengröße) < 0.000001;
+                        let ygleich = Math.abs(punkte[i].position.y-elemente[e].start.y/kästchengröße) < 0.000001;
+                        if (xgleich && ygleich) {
+                            startposition = i;
+                            break;
+                        }
+                    }
                     let positionvorher = startposition;
-                    let ergebnis = zufaelligweiter(startposition);
-                    let position = ergebnis[0];
-                    elm.push([ergebnis[1], ergebnis[2]]);
+                    let position;
+                    for (let i = 0; i < punkte.length; i++) {
+                        let xgleich = Math.abs(punkte[i].position.x-elemente[e].ende.x/kästchengröße) < 0.000001;
+                        let ygleich = Math.abs(punkte[i].position.y-elemente[e].ende.y/kästchengröße) < 0.000001;
+                        if (xgleich && ygleich) {
+                            position = i;
+                            elm.push([e, true]);
+                            break;
+                        }
+                    }
                     while (position != startposition) {
                         let ergebnis = zufaelligweiter(position, positionvorher);
                         positionvorher = position;
@@ -569,6 +584,7 @@
                     }
                     gleichungensortieren();
                 };
+                console.log(gleichungen.length);
                 function lösen2(fortschritt) {
                     //if (entfernteElemente.indexOf(elemente.length-fortschritt-1) != -1) return;
                     for (let i = elemente.length-fortschritt-2; i >= 0; i--) {
@@ -582,6 +598,7 @@
                 //console.log(JSON.parse(JSON.stringify(gleichungen)));
                 for (let i = 0; i < elemente.length; i++) lösen1(i);
                 //console.log(JSON.parse(JSON.stringify(gleichungen)));
+                console.log(gleichungen.length);
                 for (let i = 0; i < elemente.length; i++) lösen2(i);
                 //console.log(JSON.parse(JSON.stringify(gleichungen)));
                 for (let i = 0; i < elemente.length; i++) {
