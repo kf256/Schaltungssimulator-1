@@ -22,14 +22,12 @@
             let ctx = canvas.getContext("2d");
             canvas.width = (window.innerWidth > 0) ? window.innerWidth : screen.width*window.devicePixelRatio;
             canvas.height = (window.innerHeight > 0) ? window.innerHeight : screen.height*window.devicePixelRatio;
-            //document.addEventListener("touchmove", function(event) {
-            //    event.preventDefault();
-            //});
             let werkzeuge_hoehe = Math.min(canvas.width/5, 300);
             let schaltung_hoehe = canvas.height-werkzeuge_hoehe;
             let kästchengröße = 50;
             let mausposition = null;
             let elemente = [];
+            let bauteil_ausgewählt = 0;
             let bauteile = [
                 class {
                     constructor() {
@@ -51,10 +49,7 @@
                         };
                         ctx.beginPath();
                         ctx.moveTo(...f(0.0, 0));
-                        ctx.lineTo(...f(1.0, 0));/*
-                        ctx.moveTo(...f(0.4,-0.1));
-                        ctx.lineTo(...f(0.5, 0));
-                        ctx.lineTo(...f(0.4, 0.1));*/
+                        ctx.lineTo(...f(1.0, 0));
                         ctx.lineWidth = kästchengröße/15;
                         ctx.strokeStyle = "black";
                         ctx.stroke();
@@ -90,15 +85,7 @@
                         let l = Math.hypot(y2-y1, x2-x1);
                         let f = function(x, y) {
                             return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
-                        };/*
-                        ctx.beginPath();
-                        ctx.moveTo(...f(0.4,-0.3));
-                        ctx.lineTo(...f(0.7, 0));
-                        ctx.lineTo(...f(0.4, 0.3));
-                        ctx.lineWidth = kästchengröße/15;
-                        ctx.strokeStyle = "black";
-                        ctx.stroke();
-                        ctx.closePath();*/
+                        };
                         ctx.beginPath();
                         ctx.moveTo(...f(0.1, 0.2));
                         ctx.lineTo(...f(0.9, 0.2));
@@ -182,9 +169,10 @@
                     }
                 }
             ];
-            let bauteil_ausgewählt = 0;
             function malen() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Gitter malen
                 for (let x = 0; x <= canvas.width; x += kästchengröße) {
                     for (let y = 0; y <= schaltung_hoehe; y += kästchengröße) {
                         ctx.beginPath();
@@ -200,9 +188,13 @@
                         ctx.closePath();
                     }
                 }
+                
+                // Elemente malen
                 for (let i = 0; i < elemente.length; i++) {
                     elemente[i].malen();
                 }
+                
+                // Kreis um den der Maus nächsten Gitterpunkt malen
                 if (mausposition != null) {
                     if (mausposition.y < schaltung_hoehe) {
                         let x = Math.round(mausposition.x/kästchengröße)*kästchengröße;
@@ -215,6 +207,8 @@
                         ctx.closePath();
                     }
                 }
+                
+                // Werkzeugauswahl malen
                 ctx.clearRect(0, schaltung_hoehe, canvas.width, werkzeuge_hoehe);
                 ctx.beginPath();
                 ctx.rect(0, schaltung_hoehe-10, canvas.width, 10);
@@ -245,7 +239,13 @@
                         else if (i == bauteile.length+1) ctx.fillText("Bearbeiten", x+w/2, y+h/2);
                     }
                 }
-                berechnen();
+                
+                // Stromstärke und Spannung berechnen
+                try {
+                    berechnen(); // probieren, die Stromstärken und Spannungen zu berechnen
+                } catch (error) {
+                    berechnen(); // falls das nicht funktioniert hat, erneut probieren
+                }
             };
             canvas.addEventListener("pointermove", function(event) {
                 mausposition = {x: event.offsetX, y: event.offsetY};
@@ -548,6 +548,30 @@
                     }
                     gleichungen.push(gleichung);
                 }
+                
+                /*
+                 * sortiert die Gleichungen danach, wie viele Nullen sie am Anfang haben, und entfernt Gleichungen, bei denen alle Koeffizienten 0 sind
+                 *
+                 * beispielsweise wird
+                 * [
+                 *     [0, 1, 0, 5, 7],
+                 *     [0, 0, 1, 0, 5],
+                 *     [1, 1, 0, 6, 0],
+                 *     [0, 0, 0, 2, 3],
+                 *     [0, 0, 0, 0, 0],
+                 *     [2, 1, 0, 3, 0],
+                 *     [0, 0, 5, 4, 4]
+                 * ]
+                 * zu
+                 * [
+                 *     [1, 1, 0, 6, 0],
+                 *     [2, 1, 0, 3, 0],
+                 *     [0, 1, 0, 5, 7],
+                 *     [0, 0, 1, 0, 5],
+                 *     [0, 0, 5, 4, 4],
+                 *     [0, 0, 0, 2, 3]
+                 * ]
+                 */
                 function gleichungensortieren() {
                     gleichungen.sort(function(a, b) {
                         let nullena = 0;
@@ -575,9 +599,7 @@
                 };
                 gleichungensortieren();
                 function lösen1(fortschritt) {
-                    //if (entfernteElemente.indexOf(fortschritt) != -1) return;
                     for (let i = fortschritt+1; i < gleichungen.length; i++) {
-                        //if (entfernteElemente.indexOf(i) != -1) continue;
                         let faktor = gleichungen[i][fortschritt]/gleichungen[fortschritt][fortschritt];
                         for (let j = 0; j < gleichungen[i].length; j++) {
                             gleichungen[i][j] -= gleichungen[fortschritt][j]*faktor;
@@ -585,27 +607,21 @@
                     }
                     gleichungensortieren();
                 };
-                console.log(gleichungen.length);
                 function lösen2(fortschritt) {
-                    //if (entfernteElemente.indexOf(elemente.length-fortschritt-1) != -1) return;
                     for (let i = elemente.length-fortschritt-2; i >= 0; i--) {
-                        //if (entfernteElemente.indexOf(i) != -1) continue;
                         let faktor = gleichungen[i][elemente.length-fortschritt-1]/gleichungen[elemente.length-fortschritt-1][elemente.length-fortschritt-1];
                         for (let j = 0; j < gleichungen[i].length; j++) {
                             gleichungen[i][j] -= gleichungen[elemente.length-fortschritt-1][j]*faktor;
                         }
                     }
                 };
-                //console.log(JSON.parse(JSON.stringify(gleichungen)));
                 for (let i = 0; i < elemente.length; i++) lösen1(i);
-                //console.log(JSON.parse(JSON.stringify(gleichungen)));
-                console.log(gleichungen.length);
                 for (let i = 0; i < elemente.length; i++) lösen2(i);
-                //console.log(JSON.parse(JSON.stringify(gleichungen)));
                 for (let i = 0; i < elemente.length; i++) {
-                    //if (entfernteElemente.indexOf(i) != -1) continue;
                     let stromstärke = gleichungen[i][elemente.length]/gleichungen[i][i];
+                    let stromstärkeRichtung = stromstärke > 0 ? 1 : -1;
                     stromstärke = Math.abs(stromstärke);
+                    if (stromstärke < 0.000001) stromstärkeRichtung = 0;
                     stromstärke = (Math.round(stromstärke*1000)/1000).toString().replace(".", ",");
                     if (stromstärke == "NaN") stromstärke = "?";
                     stromstärke += " A";
@@ -618,30 +634,101 @@
                     let f = function(x, y) {
                         return [(x*Math.cos(a)-y*Math.sin(a))*l+x1, (x*Math.sin(a)+y*Math.cos(a))*l+y1];
                     };
-                    ctx.font = "bold "+50+"px arial";
+                    
+                    // Pfeil der Stromrichtung entsprechend malen
+                    if (stromstärkeRichtung != 0 && elemente[i].name != "Batterie") {
+                        
+                        ctx.beginPath();
+                        ctx.lineWidth = kästchengröße/20;
+                        ctx.strokeStyle = "blue";
+                        
+                        // Linie parallel zum Bauteil
+                        ctx.moveTo(...f(0.2, 0.15));
+                        ctx.lineTo(...f(0.8, 0.15));
+                        
+                        // Pfeilspitze
+                        if (stromstärkeRichtung == 1) {
+                            ctx.moveTo(...f(0.7, 0.25));
+                            ctx.lineTo(...f(0.8, 0.15));
+                            ctx.lineTo(...f(0.7, 0.05));
+                        } else if (stromstärkeRichtung == -1) {
+                            ctx.moveTo(...f(0.3, 0.25));
+                            ctx.lineTo(...f(0.2, 0.15));
+                            ctx.lineTo(...f(0.3, 0.05));
+                        }
+                        
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+                    
+                    // Stromstärke über das Bauteil schreiben
+                    ctx.font = "bold 40px arial";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.fillStyle = "green";
-                    if (elemente[i].name == "Verbindung") ctx.fillText(stromstärke, ...f(0.5, 0));
-                    else ctx.fillText(stromstärke, ...f(0.5, 0.3));
+                    ctx.fillStyle = "#0c0";
+                    let pos = f(0.5, 0);
+                    pos[1] -= l*0.15;
+                    ctx.fillText(stromstärke, ...pos);
                 }
-            };/*
-            elemente[0] = new bauteile[0]();
-            elemente[0].start = {x: 5*kästchengröße, y: 5*kästchengröße};
-            elemente[0].ende =  {x: 8*kästchengröße, y: 5*kästchengröße};
-            elemente[0].fertig = true;
-            elemente[1] = new bauteile[0]();
-            elemente[1].start = {x: 8*kästchengröße, y: 5*kästchengröße};
-            elemente[1].ende =  {x: 8*kästchengröße, y: 8*kästchengröße};
-            elemente[1].fertig = true;
-            elemente[2] = new bauteile[1]();
-            elemente[2].start = {x: 8*kästchengröße, y: 8*kästchengröße};
-            elemente[2].ende =  {x: 5*kästchengröße, y: 8*kästchengröße};
-            elemente[2].fertig = true;
-            elemente[3] = new bauteile[2]();
-            elemente[3].start = {x: 5*kästchengröße, y: 8*kästchengröße};
-            elemente[3].ende =  {x: 5*kästchengröße, y: 5*kästchengröße};
-            elemente[3].fertig = true;*/
+            };
+            function beispielAufbauen() { // Brückenschaltung mit ganzzahligen Stromstärken und Spannungen
+                elemente = [];
+                elemente[0] = new bauteile[0]();
+                elemente[0].start = {x: 3*kästchengröße, y: 3*kästchengröße};
+                elemente[0].ende =  {x: 8*kästchengröße, y: 3*kästchengröße};
+                elemente[0].fertig = true;
+                elemente[1] = new bauteile[0]();
+                elemente[1].start = {x: 8*kästchengröße, y: 3*kästchengröße};
+                elemente[1].ende =  {x: 13*kästchengröße, y: 3*kästchengröße};
+                elemente[1].fertig = true;
+                elemente[2] = new bauteile[0]();
+                elemente[2].start = {x: 3*kästchengröße, y: 9*kästchengröße};
+                elemente[2].ende =  {x: 8*kästchengröße, y: 9*kästchengröße};
+                elemente[2].fertig = true;
+                elemente[3] = new bauteile[0]();
+                elemente[3].start = {x: 8*kästchengröße, y: 9*kästchengröße};
+                elemente[3].ende =  {x: 13*kästchengröße, y: 9*kästchengröße};
+                elemente[3].fertig = true;
+                elemente[4] = new bauteile[0]();
+                elemente[4].start = {x: 8*kästchengröße, y: 6*kästchengröße};
+                elemente[4].ende =  {x: 9*kästchengröße, y: 6*kästchengröße};
+                elemente[4].fertig = true;
+                elemente[5] = new bauteile[0]();
+                elemente[5].start = {x: 12*kästchengröße, y: 6*kästchengröße};
+                elemente[5].ende =  {x: 13*kästchengröße, y: 6*kästchengröße};
+                elemente[5].fertig = true;
+                elemente[6] = new bauteile[2]();
+                elemente[6].start = {x: 3*kästchengröße, y: 3*kästchengröße};
+                elemente[6].ende =  {x: 3*kästchengröße, y: 9*kästchengröße};
+                elemente[6].spannung = 37;
+                elemente[6].fertig = true;
+                elemente[7] = new bauteile[1]();
+                elemente[7].start = {x: 8*kästchengröße, y: 3*kästchengröße};
+                elemente[7].ende =  {x: 8*kästchengröße, y: 6*kästchengröße};
+                elemente[7].größe = 2;
+                elemente[7].fertig = true;
+                elemente[8] = new bauteile[1]();
+                elemente[8].start = {x: 8*kästchengröße, y: 6*kästchengröße};
+                elemente[8].ende =  {x: 8*kästchengröße, y: 9*kästchengröße};
+                elemente[8].größe = 3;
+                elemente[8].fertig = true;
+                elemente[9] = new bauteile[1]();
+                elemente[9].start = {x: 13*kästchengröße, y: 3*kästchengröße};
+                elemente[9].ende =  {x: 13*kästchengröße, y: 6*kästchengröße};
+                elemente[9].größe = 3;
+                elemente[9].fertig = true;
+                elemente[10] = new bauteile[1]();
+                elemente[10].start = {x: 13*kästchengröße, y: 6*kästchengröße};
+                elemente[10].ende =  {x: 13*kästchengröße, y: 9*kästchengröße};
+                elemente[10].größe = 2;
+                elemente[10].fertig = true;
+                elemente[11] = new bauteile[1]();
+                elemente[11].start = {x: 9*kästchengröße, y: 6*kästchengröße};
+                elemente[11].ende =  {x: 12*kästchengröße, y: 6*kästchengröße};
+                elemente[11].größe = 5;
+                elemente[11].fertig = true;
+            };
+            beispielAufbauen();
             malen();
         </script>
     </body>
