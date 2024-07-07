@@ -229,7 +229,7 @@
                     ctx.beginPath();
                     ctx.rect(x, y, w, h);
                     ctx.lineWidth = kästchengröße/20;
-                    if (bauteil_ausgewählt == i) ctx.lineWidth = kästchengröße/10;
+                    if (bauteil_ausgewählt === i) ctx.lineWidth = kästchengröße/10;
                     ctx.strokeStyle = "black";
                     ctx.stroke();
                     ctx.closePath();
@@ -238,8 +238,8 @@
                     ctx.textBaseline = "middle";
                     if (i < bauteile.length) ctx.fillText(bauteile[i].name, x+w/2, y+h/2);
                     else {
-                        if (i == bauteile.length) ctx.fillText("Löschen", x+w/2, y+h/2);
-                        else if (i == bauteile.length+1) ctx.fillText("Bearbeiten", x+w/2, y+h/2);
+                        if (i === bauteile.length) ctx.fillText("Löschen", x+w/2, y+h/2);
+                        else if (i === bauteile.length+1) ctx.fillText("Bearbeiten", x+w/2, y+h/2);
                     }
                 }
                 
@@ -253,7 +253,7 @@
             canvas.addEventListener("pointermove", function(event) {
                 mausposition = {x: event.offsetX, y: event.offsetY};
                 malen();
-                if (bauteil_ausgewählt == bauteile.length) {
+                if (bauteil_ausgewählt === bauteile.length) {
                     for (let i = 0; i < elemente.length; i++) {
                         let x1 = elemente[i].start.x;
                         let y1 = elemente[i].start.y;
@@ -281,7 +281,7 @@
                         elemente[i].malen();
                         break;
                     }
-                } else if (bauteil_ausgewählt == bauteile.length+1) {
+                } else if (bauteil_ausgewählt === bauteile.length+1) {
                     for (let i = 0; i < elemente.length; i++) {
                         let x1 = elemente[i].start.x;
                         let y1 = elemente[i].start.y;
@@ -322,7 +322,7 @@
                         bauteil.start = {x: x, y: y};
                         elemente.push(bauteil);
                         malen();
-                    } else if (bauteil_ausgewählt == bauteile.length) {
+                    } else if (bauteil_ausgewählt === bauteile.length) {
                         for (let i = 0; i < elemente.length; i++) {
                             let x1 = elemente[i].start.x;
                             let y1 = elemente[i].start.y;
@@ -346,9 +346,9 @@
                             malen();
                             break;
                         }
-                    } else if (bauteil_ausgewählt == bauteile.length+1) {
+                    } else if (bauteil_ausgewählt === bauteile.length+1) {
                         for (let i = 0; i < elemente.length; i++) {
-                            if (elemente[i].name == "Verbindung") continue;
+                            if (elemente[i].name === "Verbindung") continue;
                             let x1 = elemente[i].start.x;
                             let y1 = elemente[i].start.y;
                             let x2 = elemente[i].fertig ? elemente[i].ende.x : mausposition.x;
@@ -367,13 +367,13 @@
                             if (ergebnis[0] < 0) continue;
                             if (ergebnis[0] > 1) continue;
                             if (Math.abs(ergebnis[1]) > 0.1) continue;
-                            if (elemente[i].name == "Widerstand") {
+                            if (elemente[i].name === "Widerstand") {
                                 let ergebnis = prompt("Neue Widerstandsgröße in Ω eingeben:");
                                 malen();
                                 ergebnis = Number(ergebnis);
                                 if (isNaN(ergebnis)) return;
                                 elemente[i].größe = ergebnis;
-                            } else if (elemente[i].name == "Batterie") {
+                            } else if (elemente[i].name === "Batterie") {
                                 let ergebnis = prompt("Neue Batteriespannung eingeben:");
                                 malen();
                                 ergebnis = Number(ergebnis);
@@ -406,18 +406,18 @@
                     let y = Math.round(event.offsetY/kästchengröße)*kästchengröße;
                     bauteil.ende = {x: x, y: y};
                     bauteil.fertig = true;
-                    if (bauteil.start.x == bauteil.ende.x && bauteil.start.y == bauteil.ende.y) elemente.pop();
+                    if (bauteil.start.x === bauteil.ende.x && bauteil.start.y === bauteil.ende.y) elemente.pop();
                     malen();
                 }
             });
             function berechnen() {
                 let punkte = [];
                 for (let i = 0; i < elemente.length; i++) {
-                    if (elemente[i].start.x == elemente[i].ende.x && elemente[i].start.y == elemente[i].ende.y) continue;
+                    if (elemente[i].start.x === elemente[i].ende.x && elemente[i].start.y === elemente[i].ende.y) continue;
                     let position = elemente[i].start;
                     let hinzugefügt = false;
                     for (let j = 0; j < punkte.length; j++) {
-                        if (punkte[j].position.x == position.x && punkte[j].position.y == position.y) {
+                        if (punkte[j].position.x === position.x && punkte[j].position.y === position.y) {
                             punkte[j].elemente.push(i);
                             hinzugefügt = true;
                             break;
@@ -427,7 +427,7 @@
                     position = elemente[i].ende;
                     hinzugefügt = false;
                     for (let j = 0; j < punkte.length; j++) {
-                        if (punkte[j].position.x == position.x && punkte[j].position.y == position.y) {
+                        if (punkte[j].position.x === position.x && punkte[j].position.y === position.y) {
                             punkte[j].elemente.push(i);
                             hinzugefügt = true;
                             break;
@@ -445,10 +445,10 @@
                 while (entfernt) {
                     entfernt = false;
                     for (let i = 0; i < punkte.length; i++) {
-                        if (punkte[i].elemente.length == 1) {
+                        if (punkte[i].elemente.length === 1) {
                             entfernt = true;
                             for (let j = 0; j < punkte.length; j++) {
-                                if (i == j) continue;
+                                if (i === j) continue;
                                 let elm = punkte[j].elemente;
                                 let index = elm.indexOf(punkte[i].elemente[0]);
                                 if (index != -1) {
@@ -463,23 +463,23 @@
                     }
                 }
                 for (let i = 0; i < punkte.length; i++) {
-                    if (punkte[i].elemente.length == 0) {
+                    if (punkte[i].elemente.length === 0) {
                         punkte = punkte.slice(0, i).concat(punkte.slice(i+1, punkte.length));
                         i--;
                     }
                 }*/
                 //console.log(punkte);
-                if (punkte.length == 0) return;
+                if (punkte.length === 0) return;
                 let gleichungen = [];
                 for (let i = 0; i < punkte.length; i++) {
                     let gleichung = [];
                     for (let j = 0; j < elemente.length; j++) {
-                        if (punkte[i].elemente.indexOf(j) == -1) {
+                        if (punkte[i].elemente.indexOf(j) === -1) {
                             gleichung.push(0);
                         } else {
                             let x = elemente[j].start.x/kästchengröße;
                             let y = elemente[j].start.y/kästchengröße;
-                            if (x == punkte[i].position.x && y == punkte[i].position.y) {
+                            if (x === punkte[i].position.x && y === punkte[i].position.y) {
                                 gleichung.push(-1);
                             } else {
                                 gleichung.push(1);
@@ -493,14 +493,14 @@
                     let elm = punkte[position].elemente;
                     let ergebnis = [überspringen];
                     let anzahl = 0;
-                    while (ergebnis[0] == überspringen && anzahl < 10) {
+                    while (ergebnis[0] === überspringen && anzahl < 10) {
                         let elementNr = elm[Math.floor(Math.random()*elm.length)];
                         for (let i = 0; i < punkte.length; i++) {
-                            if (i == position) continue;
+                            if (i === position) continue;
                             if (punkte[i].elemente.indexOf(elementNr) != -1) {
                                 let x = elemente[elementNr].start.x/kästchengröße;
                                 let y = elemente[elementNr].start.y/kästchengröße;
-                                let richtung = !(x == punkte[i].position.x && y == punkte[i].position.y);
+                                let richtung = !(x === punkte[i].position.x && y === punkte[i].position.y);
                                 ergebnis = [i, elementNr, richtung];
                                 break;
                             }
@@ -541,11 +541,11 @@
                     for (let i = 0; i < elm.length; i++) {
                         let richtung = elm[i][1] ? 1 : -1;
                         let name = elemente[elm[i][0]].name;
-                        if (name == "Verbindung") {
+                        if (name === "Verbindung") {
                             gleichung[elm[i][0]] += 0;
-                        } else if (name == "Widerstand") {
+                        } else if (name === "Widerstand") {
                             gleichung[elm[i][0]] += elemente[elm[i][0]].größe*richtung;
-                        } else if (name == "Batterie") {
+                        } else if (name === "Batterie") {
                             gleichung[elemente.length] += elemente[elm[i][0]].spannung*richtung;
                         } else throw name;
                     }
@@ -579,12 +579,12 @@
                     gleichungen.sort(function(a, b) {
                         let nullena = 0;
                         for (let i = 0; i < a.length; i++) {
-                            if (a[i] == 0) nullena++;
+                            if (a[i] === 0) nullena++;
                             else break;
                         }
                         let nullenb = 0;
                         for (let i = 0; i < b.length; i++) {
-                            if (b[i] == 0) nullenb++;
+                            if (b[i] === 0) nullenb++;
                             else break;
                         }
                         return nullena-nullenb;
@@ -626,7 +626,7 @@
                     stromstärke = Math.abs(stromstärke);
                     if (stromstärke < 0.000001) stromstärkeRichtung = 0;
                     stromstärke = (Math.round(stromstärke*1000)/1000).toString().replace(".", ",");
-                    if (stromstärke == "NaN") stromstärke = "?";
+                    if (stromstärke === "NaN") stromstärke = "?";
                     stromstärke += " A";
                     let x1 = elemente[i].start.x;
                     let y1 = elemente[i].start.y;
@@ -650,11 +650,11 @@
                         ctx.lineTo(...f(0.8, 0.15));
                         
                         // Pfeilspitze
-                        if (stromstärkeRichtung == 1) {
+                        if (stromstärkeRichtung === 1) {
                             ctx.moveTo(...f(0.7, 0.25));
                             ctx.lineTo(...f(0.8, 0.15));
                             ctx.lineTo(...f(0.7, 0.05));
-                        } else if (stromstärkeRichtung == -1) {
+                        } else if (stromstärkeRichtung === -1) {
                             ctx.moveTo(...f(0.3, 0.25));
                             ctx.lineTo(...f(0.2, 0.15));
                             ctx.lineTo(...f(0.3, 0.05));
